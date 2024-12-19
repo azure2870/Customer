@@ -1,93 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<style>
-		* { margin:0; padding:0; font-size:11px; font-family:arial; color:#444; }
-		body { padding:20px; }
-		#message-list { list-style-type:none; width:300px; height:300px; overflow:auto; border:1px solid #999; padding:20px; }
-		#message-list li { border-bottom:1px solid #ccc; padding-bottom:2px; margin-bottom:5px; }
-		code { font-family:courier; background:#eee; padding:2px 4px; }
-	</style>
-	<!-- <script src="http://cdn.socket.io/stable/socket.io.js"></script> -->
-	<script src="src/bower_components/socket.io-client/dist/socket.io.js"></script>
-	<script>
-
-	var socket = io('http://localhost:8080');
-	socket.on('connect', function(){
-		log('<span style="color:green;">Client has connected to the server!</span>');
-	});
-	socket.on('message', function(data){
-		log('Received a message from the server:  ' + data);
-	});
-	socket.on('disconnect', function(){
-		log('<span style="color:red;">The client has disconnected!</span>');
-	});
-
-
-		/*// Create SocketIO instance
-		var socket = new io.Socket('localhost',{
-			port: 8080
-		});
-		socket.connect(); 
-		
-		// Add a connect listener
-		socket.on('connect',function() {
-			log('<span style="color:green;">Client has connected to the server!</span>');
-		});
-		// Add a connect listener
-		socket.on('message',function(data) {
-			log('Received a message from the server:  ' + data);
-		});
-		// Add a disconnect listener
-		socket.on('disconnect',function() {
-			log('<span style="color:red;">The client has disconnected!</span>');
-		});*/
-		
-		// Sends a message to the server via sockets
-		function sendMessageToServer(message) {
-			socket.send(message);
-			log('<span style="color:#888">Sending "' + message + '" to the server!</span>');
-		}
-		
-		// Outputs to console and list
-		function log(message) {
-			var li = document.createElement('li');
-			li.innerHTML = message;
-			document.getElementById('message-list').appendChild(li);
-		}
-		
-		/*
-		// Create a socket instance
-		socket = new WebSocket('ws://localhost:8080');
-		
-		// Open the socket
-		socket.onopen = function(event) {
-			console.log('Socket opened on client side',event);
-			
-			// Listen for messages
-			socket.onmessage = function(event) {
-				console.log('Client received a message',event);
-			};
-			
-			// Listen for socket closes
-			socket.onclose = function(event) {
-				console.log('Client notified socket has closed',event);
-			};
-			
-		};
-		*/
-		
-	</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat</title>
+    <style>
+        * { margin: 0; padding: 0; font-size: 14px; font-family: Arial, sans-serif; color: #333; }
+        body { padding: 20px; }
+        #message-list { list-style-type: none; width: 300px; height: 300px; overflow: auto; border: 1px solid #999; padding: 20px; }
+        #message-list li { border-bottom: 1px solid #ccc; padding-bottom: 2px; margin-bottom: 5px; }
+        code { font-family: courier; background: #eee; padding: 2px 4px; }
+        #user-message { width: 80%; padding: 10px; margin-bottom: 10px; }
+        button { padding: 10px 20px; }
+    </style>
 </head>
 <body>
-	
-	<p>Messages will appear below (and in the console).</p><br />
-	<ul id="message-list"></ul>
-	<ul style="margin:20px 0 0 20px;">
-		<li>Type <code>socket.disconnect()</code> to disconnect</li>
-		<li>Type <code>socket.connect()</code> to reconnect</li>
-		<li>Type <code>sendMessageToServer('Your Message')</code> to send a message to the server</li>
-	</ul>
-	
+    <h2>AI Chat</h2>
+    <p>Messages will appear below (and in the console).</p><br />
+    <ul id="message-list"></ul>
+    <input type="text" id="user-message" placeholder="Ask me something..." />
+    <button onclick="sendMessageToServer()">Send</button>
+
+    <script>
+        // 当用户点击发送按钮时，调用该函数
+        async function sendMessageToServer() {
+            const userMessage = document.getElementById('user-message').value;
+            if (!userMessage) {
+                alert("Please enter a message.");
+                return;
+            }
+
+            // 将用户消息显示到页面
+            log('<span style="color: blue;">User: ' + userMessage + '</span>');
+
+            // 创建请求体
+            const requestBody = {
+                header: {
+                    app_id: "4ddf901c",
+                    uid: "12345",
+                    patch_id: ["xxx"]
+                },
+                parameter: {
+                    chat: {
+                        domain: "4.0Ultra",  // 替换为你的服务ID
+                        temperature: 0.7
+                    }
+                },
+                payload: {
+                    message: {
+                        text: [
+                            { "role": "user", "content": userMessage }
+                        ]
+                    }
+                }
+            };
+
+            try {
+                // 发送 POST 请求到后端 AI 服务
+                const response = await fetch('https://your-chat-service-endpoint.com', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'ZWRhMWViMDJkZmI2Nzg4ODI0ZGJjODQ4',
+                        'Authorization': '7338be5342c6f9f59385edfa41e3fa7c'  // 如果有 API 密钥的话
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();  // 解析响应
+                if (data && data.payload && data.payload.message) {
+                    const aiResponse = data.payload.message.text[0].content;
+                    log('<span style="color: green;">AI: ' + aiResponse + '</span>');
+                } else {
+                    log('<span style="color: red;">Error: Unable to get a response from the AI service.</span>');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                log('<span style="color: red;">Error occurred while calling AI service: ' + error.message + '</span>');
+            }
+
+            // 清空输入框
+            document.getElementById('user-message').value = '';
+        }
+
+        // 显示消息到页面
+        function log(message) {
+            const li = document.createElement('li');
+            li.innerHTML = message;
+            document.getElementById('message-list').appendChild(li);
+        }
+    </script>
 </body>
 </html>
