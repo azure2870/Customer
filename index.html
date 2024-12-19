@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum=1.0, user-scalable=no shrink-to-fit=no" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>AI 客服</title>
+    <title>AI 客服（科大讯飞 WebSocket）</title>
     <style>
-        /* 设置全局样式 */
+        /* 样式部分与之前保持一致 */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f1f1f1;
@@ -17,10 +17,6 @@
             align-items: center;
             height: 100vh;
             box-sizing: border-box;
-            background-image: url('https://cdn.jsdelivr.net/gh/azure2870/homepage/static/images/wallhaven-l8rle2.jpg');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
         }
 
         #chat-box {
@@ -34,7 +30,6 @@
             height: 450px;
             max-height: 100%;
             overflow: hidden;
-            background-color: rgba(255, 255, 255, 0.8); /* 半透明的背景使内容更清晰 */
         }
 
         h2 {
@@ -51,7 +46,6 @@
             flex: 1;
             overflow-y: auto;
             margin-bottom: 20px;
-            transition: 0.3s;
         }
 
         #message-list li {
@@ -65,13 +59,11 @@
         .user-message {
             background-color: #d0f8c0;
             align-self: flex-end;
-            border-radius: 15px 15px 0 15px;
         }
 
         .ai-message {
             background-color: #e6f7ff;
             align-self: flex-start;
-            border-radius: 15px 15px 15px 0;
         }
 
         #user-message {
@@ -81,12 +73,6 @@
             border: 1px solid #ddd;
             font-size: 16px;
             margin-bottom: 15px;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        #user-message:focus {
-            border-color: #4CAF50;
         }
 
         button {
@@ -96,27 +82,6 @@
             border: none;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .message-appear {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            0% {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
     </style>
 </head>
@@ -127,20 +92,20 @@
         <ul id="message-list"></ul>
         <input type="text" id="user-message" placeholder="请输入你的问题..." />
         <button onclick="sendMessageToServer()">发送</button>
+        <button onclick="startVoiceRecognition()">语音识别</button> <!-- 语音识别按钮 -->
     </div>
 
     <script>
         // 显示消息
         function logMessage(message, role) {
             const li = document.createElement('li');
-            li.classList.add(role === 'user' ? 'user-message' : 'ai-message', 'message-appear');
+            li.classList.add(role === 'user' ? 'user-message' : 'ai-message');
             li.textContent = message;
             document.getElementById('message-list').appendChild(li);
-            // 保持消息列表滚动到最底部
             document.getElementById('message-list').scrollTop = document.getElementById('message-list').scrollHeight;
         }
 
-        // 发送消息到服务器
+        // 发送用户消息到前端（模拟AI回复）
         async function sendMessageToServer() {
             const userMessage = document.getElementById('user-message').value;
             if (!userMessage) {
@@ -148,28 +113,61 @@
                 return;
             }
 
-            // 显示用户消息
             logMessage(userMessage, 'user');
             document.getElementById('user-message').value = '';  // 清空输入框
 
-            try {
-                // 调用后端接口获取 AI 响应
-                const response = await fetch('/ask', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: userMessage })
-                });
+            // 模拟 AI 回复
+            setTimeout(() => {
+                logMessage("这是 AI 的回复: " + userMessage, 'ai');
+            }, 1000);
+        }
 
-                if (response.ok) {
-                    const data = await response.json();
-                    logMessage(data.answer, 'ai');  // 显示 AI 的回答
-                } else {
-                    logMessage('AI 出现问题，请稍后再试。', 'ai');
+        // 语音识别并返回文本
+        function startVoiceRecognition() {
+            const socket = new WebSocket("wss://iat-api.xfyun.cn/v2/iat");
+
+            socket.onopen = function() {
+                console.log("连接成功！");
+
+                const message = {
+                    "common": {
+                        "app_id": "4ddf901c"
+                    },
+                    "business": {
+                        "language": "zh_cn",
+                        "domain": "iat",
+                        "accent": "mandarin"
+                    },
+                    "data": {
+                        "status": 1,
+                        "format": "audio/L16;rate=16000",
+                        "audio": ""
+                    }
+                };
+
+                // 发送开始识别的指令
+                socket.send(JSON.stringify(message));
+            };
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.data.status === 2) {
+                    logMessage("AI 识别结果: " + data.data.text, 'ai');
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                logMessage('无法连接到服务器。', 'ai');
-            }
+            };
+
+            socket.onerror = function(error) {
+                console.error("连接失败: ", error);
+                alert("语音识别服务连接失败，请稍后再试！");
+            };
+
+            socket.onclose = function() {
+                console.log("连接已关闭！");
+            };
+
+            // 模拟发送音频数据（你可以替换为实际音频数据）
+            // 在此处模拟发送空字符串，实际应当发送音频数据（例如通过录音 API 获取的音频流）
+            socket.send("音频数据");
         }
     </script>
 
