@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum=1.0, user-scalable=no shrink-to-fit=no" />
@@ -118,7 +118,7 @@
 
             // 模拟 AI 回复
             setTimeout(() => {
-                logMessage( 'ai');
+                logMessage('AI: 请问有什么我可以帮您的吗？', 'ai');
             }, 1000);
         }
 
@@ -141,7 +141,7 @@
                     "data": {
                         "status": 1,
                         "format": "audio/L16;rate=16000",
-                        "audio": ""
+                        "audio": ""  // 发送空音频数据，实际需要发送音频数据流
                     }
                 };
 
@@ -152,6 +152,7 @@
             socket.onmessage = function(event) {
                 const data = JSON.parse(event.data);
                 if (data.data.status === 2) {
+                    // AI 识别成功，输出识别结果
                     logMessage("AI 识别结果: " + data.data.text, 'ai');
                 }
             };
@@ -167,7 +168,7 @@
 
             // 模拟发送音频数据（你可以替换为实际音频数据）
             // 在此处模拟发送空字符串，实际应当发送音频数据（例如通过录音 API 获取的音频流）
-            socket.send("音频数据");
+            socket.send("音频数据"); // 实际应用时替换为真实音频数据
         }
     </script>
 
