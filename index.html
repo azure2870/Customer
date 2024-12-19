@@ -127,11 +127,7 @@
         <ul id="message-list"></ul>
         <input type="text" id="user-message" placeholder="请输入你的问题..." />
         <button onclick="sendMessageToServer()">发送</button>
-        <button onclick="startVoiceRecognition()">开始语音识别</button>
     </div>
-
-    <script src="./js/crypto-js.min.js"></script>
-    <script src="./js/xf-voice-dictation.js"></script>
 
     <script>
         // 显示消息
@@ -174,34 +170,6 @@
                 console.error('Error:', error);
                 logMessage('无法连接到服务器。', 'ai');
             }
-        }
-
-        // 初始化语音识别
-        function startVoiceRecognition() {
-            const voiceTxt = document.querySelector('#user-message');
-            const fixedBox = document.querySelector('#fixed-box');
-            const fixedTxt = document.querySelector('#fixed-txt');
-
-            const xfVoice = new XfVoiceDictation({
-                APPID: '5ec244d5',
-                APISecret: '37912e3e3f205e2a6201ec290452470a',
-                APIKey: '78b6c006f1f3df5e24d315e3dff09212',
-                onWillStatusChange: function () {
-                    fixedBox.style.display = 'block';
-                },
-                onTextChange: function (text) {
-                    voiceTxt.value = text;
-                    fixedTxt.innerText = text;
-
-                    // 自动提交识别结果到 AI
-                    if (text) {
-                        sendMessageToServer();
-                    }
-                }
-            });
-
-            // 开始识别
-            xfVoice.start();
         }
     </script>
 
