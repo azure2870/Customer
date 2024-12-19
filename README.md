@@ -1,4 +1,4 @@
-# 科大迅飞-语音识别（语音听写）Web API 
+# 科大迅飞-AI 客服 Web API 
 
 ### 🍀功能简介：
 
@@ -8,6 +8,7 @@
 > - Websocket API具备流式传输能力，适用于需要流式数据传输的AI服务场景，比如边说话边识别。
 > - 相较于SDK，WebAPI具有轻量、跨语言的特点；相较于HTTP API，Websocket API协议有原生支持跨域的优势。
 > - 语音听写流式WebAPI 服务，热词使用方式：<a target="_blank" href="https://www.xfyun.cn" >登陆迅飞开放平台</a>后，找到控制台--我的应用---语音听写---个性化热词，上传热词。
+
 
 
 
