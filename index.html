@@ -78,20 +78,8 @@
             document.getElementById('message-list').scrollTop = document.getElementById('message-list').scrollHeight;
         }
 
-        // WebSocket 连接
-        const socket = new WebSocket('ws://localhost:5000'); // 连接到本地的 Python WebSocket 服务
-
-        socket.onopen = () => {
-            console.log("WebSocket 已连接");
-        };
-
-        socket.onmessage = (event) => {
-            const aiResponse = event.data;
-            logMessage(aiResponse, 'ai');
-        };
-
         // 发送消息到服务器
-        function sendMessageToServer() {
+        async function sendMessageToServer() {
             const userMessage = document.getElementById('user-message').value;
             if (!userMessage) {
                 alert("请输入消息");
@@ -102,8 +90,24 @@
             logMessage(userMessage, 'user');
             document.getElementById('user-message').value = '';  // 清空输入框
 
-            // 发送用户消息到后端
-            socket.send(userMessage);
+            try {
+                // 调用后端接口获取 AI 响应
+                const response = await fetch('http://localhost:5000/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userMessage })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    logMessage(data.answer, 'ai');  // 显示 AI 的回答
+                } else {
+                    logMessage('AI 出现问题，请稍后再试。', 'ai');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                logMessage('无法连接到服务器。', 'ai');
+            }
         }
     </script>
 
