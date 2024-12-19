@@ -78,8 +78,20 @@
             document.getElementById('message-list').scrollTop = document.getElementById('message-list').scrollHeight;
         }
 
-        // 调用 AI 接口并获取响应
-        async function sendMessageToServer() {
+        // WebSocket 连接
+        const socket = new WebSocket('ws://localhost:5000'); // 连接到本地的 Python WebSocket 服务
+
+        socket.onopen = () => {
+            console.log("WebSocket 已连接");
+        };
+
+        socket.onmessage = (event) => {
+            const aiResponse = event.data;
+            logMessage(aiResponse, 'ai');
+        };
+
+        // 发送消息到服务器
+        function sendMessageToServer() {
             const userMessage = document.getElementById('user-message').value;
             if (!userMessage) {
                 alert("请输入消息");
@@ -90,48 +102,8 @@
             logMessage(userMessage, 'user');
             document.getElementById('user-message').value = '';  // 清空输入框
 
-            const requestBody = {
-                header: {
-                    app_id: "45053ab2",  // 替换为你的 app_id
-                    uid: "12345",     // 替换为用户的唯一 ID
-                    patch_id: ["xxx"] // 替换为 patch_id 或使用其他参数
-                },
-                parameter: {
-                    chat: {
-                        domain: "MmQxZDZiZGUzZTFjYzM4MTUxZGJkYTI0",  // 替换为你的服务 ID
-                        temperature: 0.7
-                    }
-                },
-                payload: {
-                    message: {
-                        text: [
-                            { "role": "user", "content": userMessage }
-                        ]
-                    }
-                }
-            };
-
-            try {
-                const response = await fetch('https://your-chat-service-endpoint.com', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'b0cf0ea483429369d859e9096f9d782d'  // 如果需要 API 密钥
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-
-                const data = await response.json();
-                if (data && data.payload && data.payload.message) {
-                    const aiResponse = data.payload.message.text[0].content;
-                    logMessage(aiResponse, 'ai');
-                } else {
-                    logMessage("AI 响应错误，请稍后再试", 'ai');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                logMessage('调用 AI 接口失败，请稍后再试', 'ai');
-            }
+            // 发送用户消息到后端
+            socket.send(userMessage);
         }
     </script>
 
