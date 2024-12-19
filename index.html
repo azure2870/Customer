@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum=1.0, user-scalable=no shrink-to-fit=no" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>AI 客服（科大讯飞 WebSocket）</title>
+    <title>AI 客服（讯飞星火 问答）</title>
     <style>
         /* 样式部分与之前保持一致 */
         body {
@@ -105,7 +105,7 @@
             document.getElementById('message-list').scrollTop = document.getElementById('message-list').scrollHeight;
         }
 
-        // 发送用户消息到前端（模拟AI回复）
+        // 发送用户消息到前端（调用讯飞星火 API 获取 AI 回复）
         async function sendMessageToServer() {
             const userMessage = document.getElementById('user-message').value;
             if (!userMessage) {
@@ -116,22 +116,32 @@
             logMessage(userMessage, 'user');
             document.getElementById('user-message').value = '';  // 清空输入框
 
-            // 模拟 AI 回复
-            setTimeout(() => {
-                logMessage('AI: 请问有什么我可以帮您的吗？', 'ai');
-            }, 1000);
+            // 通过讯飞星火 API 获取 AI 回复
+            try {
+                const response = await fetch('/api/xfy-answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: userMessage })
+                });
+                
+                const data = await response.json();
+                logMessage(data.answer, 'ai');
+            } catch (error) {
+                console.error("请求失败:", error);
+                logMessage("AI 无法回答，请稍后再试。", 'ai');
+            }
         }
 
-        // 语音识别并返回文本
+        // 语音识别
         function startVoiceRecognition() {
-            const socket = new WebSocket("wss://iat-api.xfyun.cn/v2/iat");
+            const socket = new WebSocket("wss://api.xfyun.cn/v2/iat");  // 连接讯飞星火 WebSocket
 
             socket.onopen = function() {
                 console.log("连接成功！");
 
                 const message = {
                     "common": {
-                        "app_id": "4ddf901c"
+                        "app_id": "your-app-id"  // 你的应用ID
                     },
                     "business": {
                         "language": "zh_cn",
@@ -141,18 +151,16 @@
                     "data": {
                         "status": 1,
                         "format": "audio/L16;rate=16000",
-                        "audio": ""  // 发送空音频数据，实际需要发送音频数据流
+                        "audio": ""
                     }
                 };
 
-                // 发送开始识别的指令
-                socket.send(JSON.stringify(message));
+                socket.send(JSON.stringify(message));  // 向讯飞星火发送语音识别请求
             };
 
             socket.onmessage = function(event) {
                 const data = JSON.parse(event.data);
                 if (data.data.status === 2) {
-                    // AI 识别成功，输出识别结果
                     logMessage("AI 识别结果: " + data.data.text, 'ai');
                 }
             };
@@ -167,8 +175,7 @@
             };
 
             // 模拟发送音频数据（你可以替换为实际音频数据）
-            // 在此处模拟发送空字符串，实际应当发送音频数据（例如通过录音 API 获取的音频流）
-            socket.send("音频数据"); // 实际应用时替换为真实音频数据
+            socket.send("音频数据");
         }
     </script>
 
