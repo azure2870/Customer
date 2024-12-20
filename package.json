@@ -2,6 +2,7 @@
   "name": "Customer",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://azure2870.github.io/Customer/",  // 添加homepage
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
